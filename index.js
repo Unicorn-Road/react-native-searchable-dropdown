@@ -82,7 +82,7 @@ export default class SearchableDropDown extends Component {
           item.name.toLowerCase().includes(searchedText.toLowerCase()),
       );
 
-      ac = removeDuplicates([
+      ac = this.removeDuplicates([
         ...filteredItems1,
         ...filteredItems2,
         ...filteredItems3,

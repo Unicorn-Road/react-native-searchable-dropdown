@@ -30,7 +30,7 @@ export default class SearchableDropDown extends Component {
     if (this.state.focus) {
       const flatListPorps = { ...this.props.listProps };
       const oldSupport = [
-        { key: 'keyboardShouldPersistTaps', val: 'always' }, 
+        { key: 'keyboardShouldPersistTaps', val: 'always' },
         { key: 'nestedScrollEnabled', val : false },
         { key: 'style', val : { ...this.props.itemsContainerStyle } },
         { key: 'data', val : this.state.listItems },
@@ -59,24 +59,40 @@ export default class SearchableDropDown extends Component {
     const defaultIndex = this.props.defaultIndex;
     if (defaultIndex && listItems.length > defaultIndex) {
       this.setState({
-        listItems,
+        listItems: [...listItems],
         item: listItems[defaultIndex]
       });
     } else {
-      this.setState({ listItems });
+      this.setState({ listItems: [...listItems] });
     }
   };
 
   searchedItems = searchedText => {
+    var ac;
     let setSort = this.props.setSort;
     if (!setSort && typeof setSort !== 'function') {
-        setSort = (item, searchedText) => { 
-          return item.name.toLowerCase().indexOf(searchedText.toLowerCase()) > -1
-        };
+      const filteredItems1 = this.props.items.filter((item) =>
+          item.name.toLowerCase().startsWith(searchedText.toLowerCase()),
+      );
+      const filteredItems2 = this.props.items.filter((item) => {
+        const words = item.name.toLowerCase().split(' ');
+        return words.indexOf(searchedText.toLowerCase()) !== -1;
+      });
+      const filteredItems3 = this.props.items.filter((item) =>
+          item.name.toLowerCase().includes(searchedText.toLowerCase()),
+      );
+
+      ac = removeDuplicates([
+        ...filteredItems1,
+        ...filteredItems2,
+        ...filteredItems3,
+      ]);
+    } else {
+      ac = this.props.items.filter((item) => {
+        return setSort(item, searchedText);
+      });
     }
-    var ac = this.props.items.filter((item) => {
-      return setSort(item, searchedText);
-    });
+
     let item = {
       id: -1,
       name: searchedText
@@ -90,11 +106,15 @@ export default class SearchableDropDown extends Component {
     }
   };
 
+  removeDuplicates = (arr: any[]) => {
+    return arr.filter((v, i, a) => a.findIndex(t => (t.id === v.id)) === i)
+  }
+
   renderItems = (item, index) => {
     if(this.props.multi && this.props.selectedItems && this.props.selectedItems.length > 0) {
       return (
-          this.props.selectedItems.find(sitem => sitem.id === item.id) 
-          ? 
+          this.props.selectedItems.find(sitem => sitem.id === item.id)
+          ?
           <TouchableOpacity style={{ ...this.props.itemStyle, flex: 1, flexDirection: 'row' }}>
             <View style={{ flex: 0.9, flexDirection: 'row', alignItems: 'flex-start' }}>
               <Text>{ item.name }</Text>
@@ -135,8 +155,8 @@ export default class SearchableDropDown extends Component {
             }, 0);
           }}
         >
-          { 
-            this.props.selectedItems && this.props.selectedItems.length > 0 && this.props.selectedItems.find(x => x.id === item.id) 
+          {
+            this.props.selectedItems && this.props.selectedItems.length > 0 && this.props.selectedItems.find(x => x.id === item.id)
             ?
               <Text style={{ ...this.props.itemTextStyle }}>{item.name}</Text>
             :
@@ -154,20 +174,19 @@ export default class SearchableDropDown extends Component {
   renderTextInput = () => {
     const textInputProps = { ...this.props.textInputProps };
     const oldSupport = [
-      { key: 'ref', val: e => (this.input = e) }, 
-      { key: 'onTextChange', val: (text) => { this.searchedItems(text) } }, 
-      { key: 'underlineColorAndroid', val: this.props.underlineColorAndroid }, 
-      { 
-        key: 'onFocus', 
+      { key: 'ref', val: e => (this.input = e) },
+      { key: 'onTextChange', val: (text) => { this.searchedItems(text) } },
+      { key: 'underlineColorAndroid', val: this.props.underlineColorAndroid },
+      {
+        key: 'onFocus',
         val: () => {
           this.props.onFocus && this.props.onFocus()
           this.setState({
             focus: true,
             item: defaultItemValue,
-            listItems: this.props.items
           });
-        } 
-      }, 
+        }
+      },
       {
         key: 'onBlur',
         val: () => {
@@ -257,7 +276,7 @@ export default class SearchableDropDown extends Component {
                              </TouchableOpacity>
                          </View>
                  )
-             }) 
+             })
          }
          </View>
     }
